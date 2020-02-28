@@ -45,7 +45,7 @@ export class TemperatureService
     )
   }
 
-  //add device to the database
+  //get all temperature list
   getTemperatureList():Observable<any>
   {
     

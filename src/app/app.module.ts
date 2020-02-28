@@ -6,7 +6,6 @@ import {TemperatureService} from "./service/temperatureService";
 import {ApiService} from "./service/apiService";
 import { AppRoutingModule } from './app-routing.module';
 import { TemperatureComponent } from './temperatureComponent/temperature.component';
-import { RefreshComponent } from './refreshComponent';
 // Import angular-fusioncharts
 import { FusionChartsModule } from "angular-fusioncharts";
 import { APP_CONFIG, AppConfig } from './app.config';
@@ -19,7 +18,7 @@ import { NG_ENTITY_SERVICE_CONFIG } from '@datorama/akita-ng-entity-service';
 import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
 import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
 import { environment } from '../environments/environment';
- 
+
 // Pass the fusioncharts library and chart modules
 FusionChartsModule.fcRoot(FusionCharts, Widgets, FusionTheme);
 
@@ -27,8 +26,7 @@ FusionChartsModule.fcRoot(FusionCharts, Widgets, FusionTheme);
 
 @NgModule({
   declarations: [
-    TemperatureComponent,
-    RefreshComponent 
+    TemperatureComponent
   ],
   imports: [
     BrowserModule,

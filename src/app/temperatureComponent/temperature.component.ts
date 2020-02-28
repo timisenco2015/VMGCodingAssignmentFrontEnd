@@ -3,8 +3,9 @@ import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
 import {TemperatureService} from "../service/temperatureService";
 import { BaseChartDirective } from 'ng2-charts'
-import {Observable,Subject} from 'rxjs';
-import {Router} from "@angular/router";
+import {Observable,Subject,} from 'rxjs';
+import { debounceTime} from 'rxjs/operators'; 
+
 
 @Component({
   selector: 'app-root',
@@ -16,13 +17,16 @@ import {Router} from "@angular/router";
 
 export class TemperatureComponent 
 {
-  
+  celsiusTextChanged: Subject<string> = new Subject<string>();
+  fahrenheitTextChanged: Subject<string> = new Subject<string>();
   title = 'VMGCodingAssignment';
   source$: Observable<Event>;
   fahrenheitGraphDataSource=[];
   celsiusGrphValueDataSource=[];
   temperatureTableDataSource=[];
   temperatureList=[];
+  celsiusTempValue:any=0;
+  fahrenheitTempValue:any=32;
   celsiusValue:any=0;
   fahrenheitValue:any=32;
   events:Object;
@@ -30,9 +34,7 @@ export class TemperatureComponent
   height = 400;
   type = "thermometer";
   dataFormat = "json";
-  private onSubject = new Subject<{ key: string, value: any }>();
-  public changes = this.onSubject.asObservable();
-
+  
 // data source for fusionchart temperature guage for fahrenheit
   fahrenheitDataSource = 
   {
@@ -100,7 +102,7 @@ export class TemperatureComponent
   @ViewChild(BaseChartDirective,{static: false}) chart: BaseChartDirective;
   _cd: ChangeDetectorRef;
 
-  constructor(private temperatureService:TemperatureService,private zone: NgZone,private router: Router)
+  constructor(private temperatureService:TemperatureService)
   {
     
    
@@ -111,7 +113,31 @@ export class TemperatureComponent
   }
 
   
-
+  ngOnInit() 
+  {
+   
+    // listening to celsius input field. Once users stop typing it will call the function that convert
+    // celsius to fahrenheit
+     this.celsiusTempValue= this.celsiusTextChanged.pipe(debounceTime(1000)).subscribe(response=>
+      {
+        if(Number.isInteger(Number(response)))
+        {
+          this.getConvertedCelsiusToFahrenheit(parseInt(response));
+        }
+      });
+   
+       // listening to fahrenheit input field. Once users stop typing it will call the function that convert
+      // fahrenheit to celsius
+     this.fahrenheitTempValue= this.fahrenheitTextChanged.pipe(debounceTime(1000)).subscribe(response=>
+      {
+        if(Number.isInteger(Number(response)))
+        {
+          this.getConvertedFahrenheitToCelsius(parseInt(response));
+        }
+      });
+     
+   
+  }
   
 
   getTemperatureList()
@@ -131,9 +157,7 @@ export class TemperatureComponent
       }
     
       this.chart.chart.update();
-      this.router.navigateByUrl('/RefreshComponent', { skipLocationChange: true }).then(() => {
-        this.router.navigate(['TemperatureComponent']);
-    }); 
+    
     });
   }
 
@@ -152,13 +176,20 @@ export class TemperatureComponent
   }
 
 
-  //get celsius value from input
+  //get celsius value from input field
   celsiusInput(event)
   {
-    
-    const charCode = (event.which) ? event.which : event.keyCode
-    if ( charCode >= 48 && charCode <= 57)
-    {
+    this.celsiusTextChanged.next(event.target.value);
+  
+ 
+   
+  }
+
+  // get converted temperature in *F from the database using service class
+  getConvertedCelsiusToFahrenheit(temp:number)
+  {
+    this.celsiusValue=temp;
+    console.log(this.celsiusValue);
       
       this.temperatureService.postTemperatureValue({
         "convertionType":"Fahrenheit",
@@ -170,34 +201,35 @@ export class TemperatureComponent
         this.celsuisDataSource.value=this.celsiusValue;
         this.getTemperatureList();
         this.populateLiearGrapghWithDataSource();
-        this._cd.markForCheck();
+        
       });
      
-    }
+    
+  }
+
+  // get converted temperature in *C from the database using service class
+  getConvertedFahrenheitToCelsius(temp:number)
+  {
+    this.temperatureService.postTemperatureValue({
+      "convertionType":"Celsius",
+      "fahrenheitValue":this.fahrenheitValue
+    }).subscribe(celsiusValue => 
+    {
+      this.celsiusValue=celsiusValue.celsius;
+      this.celsuisDataSource.value = celsiusValue.celsius;
+      this.fahrenheitDataSource.value = this.fahrenheitValue;
+      this.getTemperatureList();
+      this.populateLiearGrapghWithDataSource();
+    });
    
   }
 
-  //get fahrenheit value from input
+  //get fahrenheit value from input text field
   fahrenheitInput(event)
   {
-   const charCode = (event.which) ? event.which : event.keyCode
-    if ( charCode >= 48 && charCode <= 57)
-    {
-      console.log(this.fahrenheitValue)
-      this.temperatureService.postTemperatureValue({
-        "convertionType":"Celsius",
-        "fahrenheitValue":this.fahrenheitValue
-      }).subscribe(celsiusValue => 
-      {
-        this.celsiusValue=celsiusValue.celsius;
-        this.celsuisDataSource.value = celsiusValue.celsius;
-        this.fahrenheitDataSource.value = this.fahrenheitValue;
-        this.getTemperatureList();
-        this.populateLiearGrapghWithDataSource();
-      });
+  
+    this.fahrenheitTextChanged.next(event.target.value);
      
-     
-    }
   }
 
   
