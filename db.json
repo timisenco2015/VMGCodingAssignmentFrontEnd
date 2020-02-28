@@ -1,0 +1,58 @@
+{
+  "temperature.getTemperatureList":
+  [
+    {
+        "type": "Fahrenheit",
+        "celsius": 140,
+        "fahrenheit": 284
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": 150,
+        "fahrenheit": 302
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "6",
+        "fahrenheit": 42.8
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "60",
+        "fahrenheit": 140
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "1",
+        "fahrenheit": 33.8
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "16",
+        "fahrenheit": 60.8
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "160",
+        "fahrenheit": 320
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "1",
+        "fahrenheit": 33.8
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "17",
+        "fahrenheit": 62.6
+    },
+    {
+        "type": "Fahrenheit",
+        "celsius": "170",
+        "fahrenheit": 338
+    }
+]
+  
+  
+}
+
