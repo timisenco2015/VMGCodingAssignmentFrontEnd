@@ -1,10 +1,18 @@
 import { Component,ViewChild,ChangeDetectorRef,NgZone } from '@angular/core';
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import {TemperatureService} from "../service/temperatureService";
 import { BaseChartDirective } from 'ng2-charts'
 import {Observable,Subject,} from 'rxjs';
-import { debounceTime} from 'rxjs/operators'; 
+import {debounceTime, delay} from 'rxjs/operators';
+import { Store } from '@ngxs/store';
+import { ConvertTemperatureModel,GetTemperatureListModel } from '../ngxs/temperatureconvertion.action';
+
+enum STATUS
+{
+  refresh='Refresh',
+  celsius='Celsius',
+  fahrenheit = 'Fahrenheit'
+}
 
 
 @Component({
@@ -19,8 +27,9 @@ export class TemperatureComponent
 {
   celsiusTextChanged: Subject<string> = new Subject<string>();
   fahrenheitTextChanged: Subject<string> = new Subject<string>();
+  private onSubject = new Subject<{ key: string, value: any }>();
   title = 'VMGCodingAssignment';
-  source$: Observable<Event>;
+  source: Observable<Event>;
   fahrenheitGraphDataSource=[];
   celsiusGrphValueDataSource=[];
   temperatureTableDataSource=[];
@@ -34,7 +43,9 @@ export class TemperatureComponent
   height = 400;
   type = "thermometer";
   dataFormat = "json";
-  
+  status: string = 'Refresh';
+ 
+
 // data source for fusionchart temperature guage for fahrenheit
   fahrenheitDataSource = 
   {
@@ -100,30 +111,34 @@ export class TemperatureComponent
   };
 
   @ViewChild(BaseChartDirective,{static: false}) chart: BaseChartDirective;
-  _cd: ChangeDetectorRef;
+ 
 
-  constructor(private temperatureService:TemperatureService)
+  constructor(private store: Store)
   {
-    
-   
-    this.getTemperatureList();
+    this.start();
+    this.dispatchToGetALLTemperatureList();
     this.populateLiearGrapghWithDataSource();
-    
+
+    //It is an observable and its listening to changes in local storage. Uses the data change to refresh tabs in the same browser
+    this.onSubject.subscribe(data=>
+    {
+       
+        this.refreshData(data.value);
+    })
    
   }
 
-  
   ngOnInit() 
   {
-   
-    // listening to celsius input field. Once users stop typing it will call the function that convert
-    // celsius to fahrenheit
-     this.celsiusTempValue= this.celsiusTextChanged.pipe(debounceTime(1000)).subscribe(response=>
+     // listening to celsius input field. Once users stop typing it will call the function that convert
+      // celsius to fahrenheit 
+    this.celsiusTempValue= this.celsiusTextChanged.pipe(debounceTime(1000)).subscribe(response=>
+    {
+      if(Number.isInteger(Number(response)))
       {
-        if(Number.isInteger(Number(response)))
-        {
-          this.getConvertedCelsiusToFahrenheit(parseInt(response));
-        }
+        this.getConvertedTemperature(parseInt(response));
+      }
+       
       });
    
        // listening to fahrenheit input field. Once users stop typing it will call the function that convert
@@ -132,39 +147,39 @@ export class TemperatureComponent
       {
         if(Number.isInteger(Number(response)))
         {
-          this.getConvertedFahrenheitToCelsius(parseInt(response));
+          this.getConvertedTemperature(parseInt(response));
         }
       });
-     
-   
   }
   
 
-  getTemperatureList()
+  // used to set the datasource for the table, and both graphs
+  getTemperatureList(temperatureList:any)
   {
     
-    this.temperatureService.getTemperatureList().subscribe(temperatureList => 
-    {
-      this.temperatureTableDataSource=[];
-      this.temperatureList=temperatureList;
-      for (let temperature of this.temperatureList) 
-      {
-        
-          this.celsiusGrphValueDataSource.push(temperature.celsius);
-          this.fahrenheitGraphDataSource.push(temperature.fahrenheit);
-        
-          this.temperatureTableDataSource.push({"celsuis":temperature.celsius,"fahrenheit":temperature.fahrenheit});
-      }
+    this.temperatureTableDataSource=[];
+    this.celsiusGrphValueDataSource=[];
+    this.fahrenheitGraphDataSource=[];
+    this.temperatureList=temperatureList;
     
-      this.chart.chart.update();
+    for (let temperature of this.temperatureList) 
+    { 
+          
+      this.celsiusGrphValueDataSource.push(temperature.celsius);
+      this.fahrenheitGraphDataSource.push(temperature.fahrenheit);
+      this.temperatureTableDataSource.push({"celsuis":temperature.celsius,"fahrenheit":temperature.fahrenheit});
+    }
     
-    });
+    
+    this.populateLiearGrapghWithDataSource();
+    this.chart.chart.update();
   }
 
 
   // this method is used to draw linear line chart for both celsius and fahrenheit
   populateLiearGrapghWithDataSource()
   {
+   
     this.lineChartData = 
     [
       { data: this.celsiusGrphValueDataSource, label: 'T[F]',fill: false, pointStyle:'rectRounded'},
@@ -173,68 +188,139 @@ export class TemperatureComponent
     ];
   
     this.lineChartLabels = ['1', '2', '3', '4', '5', '6','7','8','9','10'];
+
+    
   }
 
 
   //get celsius value from input field
-  celsiusInput(event)
+  celsiusInput(event,actionName:string)
   {
+    this.status=actionName;
     this.celsiusTextChanged.next(event.target.value);
-  
- 
-   
-  }
-
-  // get converted temperature in *F from the database using service class
-  getConvertedCelsiusToFahrenheit(temp:number)
-  {
-    this.celsiusValue=temp;
-    console.log(this.celsiusValue);
-      
-      this.temperatureService.postTemperatureValue({
-        "convertionType":"Fahrenheit",
-        "celsiusValue":this.celsiusValue
-      }).subscribe(fahrenheitValue => 
-      {
-        this.fahrenheitValue=fahrenheitValue.fahrenheit;
-        this.fahrenheitDataSource.value = fahrenheitValue.fahrenheit;
-        this.celsuisDataSource.value=this.celsiusValue;
-        this.getTemperatureList();
-        this.populateLiearGrapghWithDataSource();
-        
-      });
-     
-    
-  }
-
-  // get converted temperature in *C from the database using service class
-  getConvertedFahrenheitToCelsius(temp:number)
-  {
-    this.temperatureService.postTemperatureValue({
-      "convertionType":"Celsius",
-      "fahrenheitValue":this.fahrenheitValue
-    }).subscribe(celsiusValue => 
-    {
-      this.celsiusValue=celsiusValue.celsius;
-      this.celsuisDataSource.value = celsiusValue.celsius;
-      this.fahrenheitDataSource.value = this.fahrenheitValue;
-      this.getTemperatureList();
-      this.populateLiearGrapghWithDataSource();
-    });
-   
   }
 
   //get fahrenheit value from input text field
-  fahrenheitInput(event)
+  fahrenheitInput(event,actionName:string)
   {
-  
+    this.status=actionName;
     this.fahrenheitTextChanged.next(event.target.value);
+  }
+
+  // get converted temperature in *F from the database using service class
+  getConvertedTemperature(temp:number)
+  {
+    if(this.status == STATUS.celsius)
+    {
+      this.celsiusValue=temp;
+      this.dispatchToGetCelsiusToFahrenheit();
+    } 
+    else  if(this.status === STATUS.fahrenheit)
+    {
+      this.fahrenheitValue=temp;
+      this.dispatchToGetFahrenheitToCelsius();   
+    }
      
   }
 
-  
  
+  // ngx state. calls ngx action model which get data from the service and dispatch it to event listener
+  dispatchToGetCelsiusToFahrenheit()
+  {
+    this.store.dispatch(new ConvertTemperatureModel(
+    {
+      "convertionType":"Fahrenheit",
+      "celsiusValue":this.celsiusValue
+    })).subscribe(
+      (data) => 
+      {
+        this.status=STATUS.celsius;
+        this.onSubject.next({ key: "TEMP_CONVERT_VALUE", value: data});
+        window.localStorage.setItem("TEMP_CONVERT_VALUE", JSON.stringify(data));
+        this.store.dispatch(new GetTemperatureListModel()).subscribe((fahrenheitData) => 
+        {
+          this.onSubject.next({ key: "TEMP_LIST", value: fahrenheitData});
+          window.localStorage.setItem("TEMP_LIST", JSON.stringify(fahrenheitData));
+          
+        });
+      });    
+  }
 
+  // ngx state. calls ngx action model which get data from the service and dispatch it to event listener
+  dispatchToGetFahrenheitToCelsius()
+  {
+    this.store.dispatch(new ConvertTemperatureModel(
+    {
+      "convertionType":"Celsius",
+      "fahrenheitValue":this.fahrenheitValue
+    })).subscribe(
+      (data) => 
+      {
+        this.status=STATUS.fahrenheit;
+        window.localStorage.setItem("TEMP_CONVERT_VALUE", JSON.stringify(data));
+        this.onSubject.next({ key: "TEMP_CONVERT_VALUE", value: data});
+        this.store.dispatch(new GetTemperatureListModel()).subscribe((celsiusData) => 
+        {
+          this.onSubject.next({ key: "TEMP_LIST", value: celsiusData});
+          window.localStorage.setItem("TEMP_LIST", JSON.stringify(celsiusData));
+        });
+      });
+     
+  }
+
+  // ngx state. calls ngx action model which get data from the service and dispatch it to event listener
+  dispatchToGetALLTemperatureList()
+  {
+    
+    this.store.dispatch(new GetTemperatureListModel()).subscribe((data) => 
+    {
+      this.status=STATUS.refresh;
+      this.onSubject.next({ key: "TEMP_LIST", value: data});
+      window.localStorage.setItem("TEMP_LIST", JSON.stringify(data));
+      
+    });
+  }
+
+  //This method is passed to window.addEventListener
+  private storageEventListener(event: StorageEvent) 
+  {
+ 
+    if (event.storageArea == localStorage) 
+    {
+      let tempValue;
+      try 
+      { 
+        
+        tempValue = JSON.parse(event.newValue); 
+      }
+      catch (e) 
+      { 
+        tempValue = event.newValue; 
+      }
+      this.onSubject.next({ key: event.key, value: tempValue });
+    }
+  }
+
+  // start local storage event listener
+  private start(): void 
+  {
+    window.addEventListener("storage", this.storageEventListener.bind(this));
+  }
+
+ 
+ 
+  // used to refresh data display in browser tabs
+  public refreshData(data:any) 
+  {
+    
+    this.celsiusValue=data.TemperatureState.convert.celsius==null?0:data.TemperatureState.convert.celsius;
+    this.celsuisDataSource.value = data.TemperatureState.convert.celsius==null?0:data.TemperatureState.convert.celsius;
+    this.fahrenheitDataSource.value = data.TemperatureState.convert.fahrenheit==null?32:data.TemperatureState.convert.fahrenheit;
+    this.fahrenheitValue = data.TemperatureState.convert.fahrenheit==null?32:data.TemperatureState.convert.fahrenheit;
+    this.getTemperatureList(data.TemperatureState.getTemp);
+    
+  }
+ 
 }
 
   

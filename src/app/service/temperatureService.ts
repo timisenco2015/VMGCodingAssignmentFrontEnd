@@ -1,8 +1,9 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable, of,EMPTY} from 'rxjs';
+import {Observable, of,EMPTY } from 'rxjs';
 import { catchError, map} from 'rxjs/operators';
 import { ApiService } from './apiService';
+
 
 
 @Injectable()
@@ -11,11 +12,12 @@ export class TemperatureService
   private _http: HttpClient;
   _apiService: ApiService;
   
-
+ 
   constructor(private http: HttpClient,_apiService: ApiService)
   {
     this._http=http;
     this._apiService = _apiService;
+
   }
 
 
@@ -49,17 +51,19 @@ export class TemperatureService
   getTemperatureList():Observable<any>
   {
     
-    return  this._apiService.get(`temperatureconversion/getTemperatureList`)
+    return this._apiService.get(`temperatureconversion/getTemperatureList`)
     .pipe(
-
+      
       map((response) => 
       {
+       
         if(response==null)
         {
           return EMPTY;
         }
         else
         {
+          
           return response.data;
         }
       })

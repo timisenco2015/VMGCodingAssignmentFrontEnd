@@ -15,9 +15,12 @@ import * as FusionCharts from "fusioncharts";
 import * as Widgets from "fusioncharts/fusioncharts.widgets";
 import * as FusionTheme from "fusioncharts/themes/fusioncharts.theme.fusion";
 import { NG_ENTITY_SERVICE_CONFIG } from '@datorama/akita-ng-entity-service';
-import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
-import { AkitaNgRouterStoreModule } from '@datorama/akita-ng-router-store';
-import { environment } from '../environments/environment';
+import { NgxsModule } from '@ngxs/store';
+import { NgxsReduxDevtoolsPluginModule } from '@ngxs/devtools-plugin';
+import { NgxsFormPluginModule } from '@ngxs/form-plugin';
+
+// states
+import { TemperatureState } from './ngxs/temperatureconvertion.state';
 
 // Pass the fusioncharts library and chart modules
 FusionChartsModule.fcRoot(FusionCharts, Widgets, FusionTheme);
@@ -36,12 +39,13 @@ FusionChartsModule.fcRoot(FusionCharts, Widgets, FusionTheme);
     HttpClientModule,
     HttpClientJsonpModule,
     FormsModule,
-    environment.production ? [] : AkitaNgDevtools.forRoot(),
-    AkitaNgRouterStoreModule.forRoot()
+    NgxsModule.forRoot([TemperatureState]),
+    NgxsReduxDevtoolsPluginModule.forRoot(),
+    NgxsFormPluginModule.forRoot(), 
     
   ],
   providers: [
-    { provide: APP_CONFIG, useValue: AppConfig },TemperatureService,ApiService, { provide: NG_ENTITY_SERVICE_CONFIG, useValue: { baseUrl: 'https://jsonplaceholder.typicode.com' }}],
+     { provide: APP_CONFIG, useValue: AppConfig },TemperatureService,ApiService, { provide: NG_ENTITY_SERVICE_CONFIG, useValue: { baseUrl: 'https://jsonplaceholder.typicode.com' }}],
   bootstrap: [TemperatureComponent]
 })
 export class AppModule { }
