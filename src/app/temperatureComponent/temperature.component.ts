@@ -134,9 +134,16 @@ export class TemperatureComponent implements OnDestroy
       // celsius to fahrenheit 
     this.celsiusTempValue= this.celsiusTextChanged.pipe(debounceTime(1000)).subscribe(response=>
     {
-      if(Number.isInteger(Number(response)))
+      if(response=="")
       {
-        this.getConvertedTemperature(parseInt(response));
+        this.celsiusValue = 0;
+      }
+      else
+      {
+        if(Number.isInteger(Number(response)))
+        {
+          this.getConvertedTemperature(parseInt(response));
+        }
       }
        
       });
@@ -145,9 +152,16 @@ export class TemperatureComponent implements OnDestroy
       // fahrenheit to celsius
      this.fahrenheitTempValue= this.fahrenheitTextChanged.pipe(debounceTime(1000)).subscribe(response=>
       {
-        if(Number.isInteger(Number(response)))
+        if(response=="")
         {
-          this.getConvertedTemperature(parseInt(response));
+          this.fahrenheitValue = 32;
+        }
+        else
+        {
+          if(Number.isInteger(Number(response)))
+          {
+            this.getConvertedTemperature(parseInt(response));
+          }
         }
       });
   }
