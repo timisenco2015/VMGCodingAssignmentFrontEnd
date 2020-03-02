@@ -1,4 +1,4 @@
-import { Component,ViewChild,ChangeDetectorRef,NgZone } from '@angular/core';
+import { Component,ViewChild,OnDestroy } from '@angular/core';
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
 import { BaseChartDirective } from 'ng2-charts'
@@ -23,7 +23,7 @@ enum STATUS
 })
 
 
-export class TemperatureComponent 
+export class TemperatureComponent implements OnDestroy
 {
   celsiusTextChanged: Subject<string> = new Subject<string>();
   fahrenheitTextChanged: Subject<string> = new Subject<string>();
@@ -152,7 +152,17 @@ export class TemperatureComponent
       });
   }
   
-
+  ngOnDestroy() 
+  {
+    this.celsiusTextChanged.unsubscribe();
+    this.fahrenheitTextChanged.unsubscribe();
+    this.onSubject.unsubscribe();
+    this.fahrenheitGraphDataSource=[];
+    this.celsiusGrphValueDataSource=[];
+    this.temperatureTableDataSource=[];
+    this.temperatureList=[];
+    window.localStorage.clear();
+  }
   // used to set the datasource for the table, and both graphs
   getTemperatureList(temperatureList:any)
   {
