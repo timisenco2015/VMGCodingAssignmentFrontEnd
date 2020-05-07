@@ -21,6 +21,7 @@ export class ApiService
       this.api_url = this.config.GETAPI_ENDPOINT;
      
     }
+    
  
   private formatErrors(error: any) 
   {

@@ -42,7 +42,7 @@ FusionChartsModule.fcRoot(FusionCharts, Widgets, FusionTheme);
     NgxsModule.forRoot([TemperatureState]),
     NgxsReduxDevtoolsPluginModule.forRoot(),
     NgxsFormPluginModule.forRoot(), 
-    
+  
   ],
   providers: [
      { provide: APP_CONFIG, useValue: AppConfig },TemperatureService,ApiService, { provide: NG_ENTITY_SERVICE_CONFIG, useValue: { baseUrl: 'https://jsonplaceholder.typicode.com' }}],

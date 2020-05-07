@@ -1,74 +1,22 @@
 import {TestBed} from '@angular/core/testing'
 import { HttpClientTestingModule,HttpTestingController } from '@angular/common/http/testing';
-import {ApiService} from "../../../../../../../Do_not_delete_project_folder/redSpaceChanllenge/redSpaceFrontEnd/src/app/service/api.service";
-import { APP_CONFIG, AppConfig} from '../../../../../../../Do_not_delete_project_folder/redSpaceChanllenge/redSpaceFrontEnd/src/app/app.config';
-import { environment } from '../../../../../../../Do_not_delete_project_folder/redSpaceChanllenge/redSpaceFrontEnd/src/environments/environment';
+import {ApiService} from "../../../service/apiService";
+import { APP_CONFIG, AppConfig,AppConfigInterface} from '../../../../../src/app/app.config';
+import { environment } from '../../../../environments/environment';
 import { Title } from '@angular/platform-browser';
-
+import { request } from 'http';
 
 describe('ApiService', ()=>
 {
     let apiService:ApiService;
     let httpTestingController: HttpTestingController;
-    let api_url: string;
-    
-
-    const mockTemperatureList = 
+    let config: AppConfigInterface;
+    let requestBody = 
     {
-      "data": [
-            {
-                "type": "Fahrenheit",
-                "celsius": 140,
-                "fahrenheit": 284
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": 150,
-                "fahrenheit": 302
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "6",
-                "fahrenheit": 42.8
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "60",
-                "fahrenheit": 140
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "1",
-                "fahrenheit": 33.8
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "16",
-                "fahrenheit": 60.8
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "160",
-                "fahrenheit": 320
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "1",
-                "fahrenheit": 33.8
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "17",
-                "fahrenheit": 62.6
-            },
-            {
-                "type": "Fahrenheit",
-                "celsius": "170",
-                "fahrenheit": 338
-            }
-        ]
+        "celsiusValue":36,
+        "fahrenheitValue":0,
+        "convertionType":"Fahrenheit"
     }
-    
   
     beforeEach(()=>
     {
@@ -76,49 +24,86 @@ describe('ApiService', ()=>
         TestBed.configureTestingModule({providers:[Title, { provide: APP_CONFIG, useValue: AppConfig },ApiService],imports: [ HttpClientTestingModule]})
         httpTestingController = TestBed.get(HttpTestingController);
         apiService = TestBed.get(ApiService);
-            
+        config= TestBed.get(APP_CONFIG);
     });
     
-    
-    afterEach(() =>
-    {
-        apiService =null;
-        httpTestingController.verify();
-    });
-
     
     it('should be created', () => 
     {
         expect(apiService).toBeTruthy();
+        expect(httpTestingController).toBeTruthy();
+        expect(config).toBeTruthy();
     });
     
 
-    it('should not immediately connect to the server', () => 
+    it('post method in API Service',()=>
     {
-        httpTestingController.expectNone({});
-    });
+        apiService.post(`temperatureconversion/convertTemperature`,requestBody).subscribe(result=>
+        {
 
-    // test for get person details
-    it('get person details',()=>
-    {
-        
-       apiService.getStarWarsCelebrity(environment.getTemperatureListUrlTest).subscribe(temperatureList => 
-        {
-            
-            expect(temperatureList).not.toBe(null);
-            expect(temperatureList[0].fahrenheit).toEqual(284);
-        },
-        error => 
-        {
-            expect(error).not.toBe(null);
         });
-       
-        const req = httpTestingController.expectOne({ method: 'GET', url: environment.getTemperatureListUrlTest + "person.getDetails"});
+        
+        const resp = httpTestingController.expectOne(config.GETAPI_ENDPOINT+`temperatureconversion/convertTemperature`);
+        
+        expect(resp.request.method).toEqual("POST");
 
-        expect(req.request.method).toEqual('GET');
+        expect(resp.request.body.celsiusValue).toEqual(36);
+
+        resp.flush({
+            "status": 200,
+            "statusDesc": "succesful",
+            "data": {
+                "celsius": 36,
+                "fahrenheit": 96.8,
+                "convertionType": "Fahrenheit"
+            },
+            "message": "Record Fecthed Successfully"
+        });
+
+    })
+
+
+    it('get method in API Service',()=>
+    {
+        apiService.get(`temperatureconversion/getTemperatureList`).subscribe(result=>
+        {
+
+        });
+        
+        const resp = httpTestingController.expectOne(config.GETAPI_ENDPOINT+`temperatureconversion/getTemperatureList`);
+        
+        expect(resp.request.method).toEqual("GET");
+
     
-        req.flush(mockTemperatureList);
-    });   
+        resp.flush({
+            "status": 200,
+            "statusDesc": "succesful",
+            "data": [
+                {
+                    "fahrenheit": null,
+                    "convertionType": "Fahrenheit"
+                },
+                {
+                    "celsius": 36,
+                    "fahrenheit": 96.8,
+                    "convertionType": "Fahrenheit"
+                }
+            ],
+            "message": "Record Fecthed Successfully"
+        });
+
+    })
+    
+
+    
+    afterEach(() =>
+    {
+        apiService =null;
+       
+        httpTestingController.verify();
+        httpTestingController = null;
+        config=null;
+    });
 
 });
 
