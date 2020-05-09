@@ -196,7 +196,7 @@ export class TemperatureComponent implements OnDestroy
     
     
     this.populateLiearGrapghWithDataSource();
-    this.chart.chart.update();
+   // this.chart.chart.update();
   }
 
 

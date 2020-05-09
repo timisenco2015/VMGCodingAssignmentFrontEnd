@@ -78,4 +78,7 @@ export class TemperatureService
     console.error(error)
     return Observable.throw(error|| "Server error");
   }
+
+
+ 
 }

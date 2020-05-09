@@ -1,36 +1,51 @@
-/*import { TestBed, async } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { TestBed, async } from '@angular/core/testing';
 import { TemperatureComponent } from '../../../temperatureComponent/temperature.component';
+import {ComponentFixture} from '@angular/core/testing';
+import {AppModule} from '../../../app.module';
+import {DebugElement} from '@angular/core';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
-describe('TemperatureComponent', () => {
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule
-      ],
-      declarations: [
-        TemperatureComponent
-      ],
-    }).compileComponents();
+import { By } from '@angular/platform-browser';
+
+describe('TemperatureComponent', () => 
+{
+  let temperatureComponent: TemperatureComponent;
+
+  let fixture:ComponentFixture<TemperatureComponent>;
+
+  let debugElement: DebugElement;
+
+  beforeEach(async(() => 
+  {
+    TestBed.configureTestingModule(
+      {
+         imports: [
+          AppModule,
+          NoopAnimationsModule
+        ]
+       
+      }).compileComponents()
+      .then(()=>
+      {
+        fixture = TestBed.createComponent(TemperatureComponent);
+
+        temperatureComponent = fixture.componentInstance;
+
+        debugElement = fixture.debugElement;
+      });
+
+      
   }));
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(TemperatureComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
+   
+    expect(temperatureComponent).toBeTruthy();
+    //const val =debugElement.query(By.css(".course-cards"));
+    
+    //expect(val.nativeElement.style.color = 'blue');
   });
 
-  it(`should have as title 'VMGCodingAssignment'`, () => {
-    const fixture = TestBed.createComponent(TemperatureComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('VMGCodingAssignment');
-  });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(TemperatureComponent);
-    fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('VMGCodingAssignment app is running!');
-  });
+
 });
-*/
+

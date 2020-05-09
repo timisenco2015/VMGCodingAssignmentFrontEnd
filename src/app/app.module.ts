@@ -49,3 +49,4 @@ FusionChartsModule.fcRoot(FusionCharts, Widgets, FusionTheme);
   bootstrap: [TemperatureComponent]
 })
 export class AppModule { }
+

@@ -2,9 +2,8 @@ import {TestBed} from '@angular/core/testing'
 import { HttpClientTestingModule,HttpTestingController } from '@angular/common/http/testing';
 import {ApiService} from "../../../service/apiService";
 import { APP_CONFIG, AppConfig,AppConfigInterface} from '../../../../../src/app/app.config';
-import { environment } from '../../../../environments/environment';
 import { Title } from '@angular/platform-browser';
-import { request } from 'http';
+import { HttpErrorResponse } from '@angular/common/http';
 
 describe('ApiService', ()=>
 {
@@ -40,12 +39,15 @@ describe('ApiService', ()=>
     {
         apiService.post(`temperatureconversion/convertTemperature`,requestBody).subscribe(result=>
         {
-
+                expect(result.status).toEqual(200);
+                expect(result.data.fahrenheit).toEqual(96.8);
         });
         
         const resp = httpTestingController.expectOne(config.GETAPI_ENDPOINT+`temperatureconversion/convertTemperature`);
         
         expect(resp.request.method).toEqual("POST");
+
+        // for parameter use expect(resp.request.params.celsiusValue).toEqual(36);
 
         expect(resp.request.body.celsiusValue).toEqual(36);
 
@@ -60,7 +62,7 @@ describe('ApiService', ()=>
             "message": "Record Fecthed Successfully"
         });
 
-    })
+    });
 
 
     it('get method in API Service',()=>
@@ -92,18 +94,39 @@ describe('ApiService', ()=>
             "message": "Record Fecthed Successfully"
         });
 
-    })
+    });
     
+    it('test getTemperature Error',()=>
+    {
+        apiService.get(`temperatureconversion/getTemperatureList`).subscribe(()=> 
+        {
+            fail("The get temperature list operation should fail");
+            (error:HttpErrorResponse)=>
+            {
+                expect(error.status).toBe(500);
+                
+            }
 
+        });
+        
+        const resp = httpTestingController.expectOne(config.GETAPI_ENDPOINT+`temperatureconversion/getTemperatureList`);
+        
+        expect(resp.request.method).toEqual("GET");
+
+    
+        resp.flush('Get temperature list failed', {status:500, statusText:'Internal Server Error'});
+
+    });
     
     afterEach(() =>
     {
         apiService =null;
-       
         httpTestingController.verify();
         httpTestingController = null;
         config=null;
     });
 
 });
+
+//
 

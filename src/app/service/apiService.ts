@@ -21,7 +21,7 @@ export class ApiService
       this.api_url = this.config.GETAPI_ENDPOINT;
      
     }
-    
+
  
   private formatErrors(error: any) 
   {
@@ -43,5 +43,19 @@ export class ApiService
     return this._http.get(
       `${this.api_url}${path}`).pipe(catchError(this.formatErrors));
   }
+
+
+
+   //for future reference use
+
+  /*
+    default values: courseId:number, filter='', sortOrder='asc', pageNumber=0, pageSize=3
+    return this.http.get('your url', params: new HttpParams().set('courseId',courseId.toString)
+                                                              .set('filter',filter)
+                                                              .set('sortOrder',sortOrder)
+                                                              .set('pageNumber', pageNumber.toString())
+                                                              .set('pageSize', pageSize.toString()))
+    
+  */
 
 }
